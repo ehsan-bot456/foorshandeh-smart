@@ -1,15 +1,28 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
+
 export async function POST(request) {
   try {
     const { messages } = await request.json();
 
-    const lastMessage = messages?.[messages.length - 1];
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: messages,
+    });
 
     return Response.json({
-      content: `پیام شما دریافت شد: ${lastMessage?.content || ""}`,
+      content: completion.choices[0].message.content,
     });
   } catch (error) {
+    console.error(error);
+
     return Response.json(
-      { error: "خطا در دریافت پیام" },
+      {
+        error: "خطا در اتصال به هوش مصنوعی",
+      },
       { status: 500 }
     );
   }
