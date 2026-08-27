@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "فروشنده هوشمند",
+  title: " AI فروشنده هوشمند",
   description: "چت‌بات اختصاصی فروشنده هوشمند",
 };
 
