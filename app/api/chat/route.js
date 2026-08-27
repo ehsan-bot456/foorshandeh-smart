@@ -10,18 +10,18 @@ export async function POST(request) {
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: messages,
+      messages,
     });
 
     return Response.json({
       content: completion.choices[0].message.content,
     });
   } catch (error) {
-    console.error(error);
+    console.error("OPENAI ERROR:", error);
 
     return Response.json(
       {
-        error: "خطا در اتصال به هوش مصنوعی",
+        error: error?.message || "خطای نامشخص در OpenAI",
       },
       { status: 500 }
     );
