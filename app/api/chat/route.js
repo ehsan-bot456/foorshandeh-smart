@@ -1,27 +1,46 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request) {
   try {
     const { messages } = await request.json();
 
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages,
-    });
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: "openrouter/free",
+          messages: messages,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error("OpenRouter error:", data);
+
+      return Response.json(
+        {
+          error:
+            data?.error?.message ||
+            "خطا در اتصال به OpenRouter",
+        },
+        { status: response.status }
+      );
+    }
 
     return Response.json({
-      content: completion.choices[0].message.content,
+      content: data.choices?.[0]?.message?.content || "پاسخی دریافت نشد.",
     });
   } catch (error) {
-    console.error("OPENAI ERROR:", error);
+    console.error("Server error:", error);
 
     return Response.json(
       {
-        error: error?.message || "خطای نامشخص در OpenAI",
+        error: error?.message || "خطای سرور",
       },
       { status: 500 }
     );
