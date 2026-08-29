@@ -3,7 +3,7 @@ import { getTenantId, getTenantConfig } from "../../../lib/tenant";
 
 export async function POST(request) {
   try {
-    // دریافت پیام‌ها
+    // دریافت پیام‌های کاربر
     const body = await request.json();
     const messages = body?.messages;
 
@@ -16,7 +16,7 @@ export async function POST(request) {
       );
     }
 
-    // بررسی کلید OpenRouter
+    // دریافت کلید OpenRouter
     const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
@@ -35,11 +35,11 @@ export async function POST(request) {
 
     console.log("Tenant ID:", tenantId);
 
-    // دریافت تنظیمات Bot
+    // دریافت تنظیمات ربات
     const bot = getTenantConfig(tenantId, bots);
 
     if (!bot) {
-      console.error("Bot not found for tenant:", tenantId);
+      console.error("Bot not found:", tenantId);
 
       return Response.json(
         {
@@ -49,7 +49,7 @@ export async function POST(request) {
       );
     }
 
-    // بررسی اطلاعات Bot
+    // بررسی محصولات
     if (!Array.isArray(bot.products)) {
       console.error("bot.products is not an array:", bot);
 
@@ -71,15 +71,23 @@ export async function POST(request) {
       )
       .join("\n\n");
 
-    // ساخت پیام سیستم
+    // پیام اصلی سیستم
     const systemMessage = `
 تو فروشنده هوشمند فروشگاه «${bot.storeName || "فروشگاه"}» هستی.
 
 اطلاعات فروشگاه:
-نام فروشگاه: ${bot.storeName || "ثبت نشده"}
-شماره تماس: ${bot.phone || "ثبت نشده"}
-شهر: ${bot.contact?.city || "ثبت نشده"}
-آدرس: ${bot.contact?.address || "ثبت نشده"}
+
+نام فروشگاه:
+${bot.storeName || "ثبت نشده"}
+
+شماره تماس:
+${bot.phone || "ثبت نشده"}
+
+شهر:
+${bot.contact?.city || "ثبت نشده"}
+
+آدرس:
+${bot.contact?.address || "ثبت نشده"}
 
 محصولات:
 ${productInfo || "محصولی ثبت نشده است."}
@@ -105,8 +113,13 @@ ${bot.instructions || "به مشتری با ادب و به زبان فارسی �
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://foorshandeh-smart.vercel.app",
-          "X-Title": "فروشنده هوشمند"
+
+          "HTTP-Referer":
+            "https://foorshandeh-smart.vercel.app",
+
+          // مهم:
+          // اینجا نباید متن فارسی قرار بگیرد
+          "X-Title": "Foorshandeh Smart"
         },
 
         body: JSON.stringify({
@@ -123,13 +136,20 @@ ${bot.instructions || "به مشتری با ادب و به زبان فارسی �
       }
     );
 
+    // دریافت پاسخ OpenRouter
     const data = await response.json();
 
-    console.log("OpenRouter status:", response.status);
+    console.log(
+      "OpenRouter status:",
+      response.status
+    );
 
-    // بررسی خطای OpenRouter
+    // اگر OpenRouter خطا داد
     if (!response.ok) {
-      console.error("OpenRouter Error:", data);
+      console.error(
+        "OpenRouter Error:",
+        data
+      );
 
       return Response.json(
         {
@@ -143,28 +163,35 @@ ${bot.instructions || "به مشتری با ادب و به زبان فارسی �
       );
     }
 
-    // بررسی پاسخ مدل
+    // دریافت متن پاسخ
     const content =
       data?.choices?.[0]?.message?.content;
 
     if (!content) {
-      console.error("Invalid OpenRouter response:", data);
+      console.error(
+        "Invalid OpenRouter response:",
+        data
+      );
 
       return Response.json(
         {
-          error: "OpenRouter پاسخی برای این درخواست برنگرداند."
+          error:
+            "OpenRouter پاسخی برای این درخواست برنگرداند."
         },
         { status: 500 }
       );
     }
 
-    // پاسخ نهایی
+    // ارسال پاسخ به سایت
     return Response.json({
-      content
+      content: content
     });
 
   } catch (error) {
-    console.error("SERVER ERROR:", error);
+    console.error(
+      "SERVER ERROR:",
+      error
+    );
 
     return Response.json(
       {
