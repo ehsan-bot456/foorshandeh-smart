@@ -40,7 +40,7 @@ export async function POST(request) {
 محصولات:
 ${productInfo}
 
-دستورالعمل پاسخ‌گویی:
+دستورالعمل:
 ${bot.instructions}
 
 به زبان فارسی پاسخ بده.
@@ -85,7 +85,9 @@ ${bot.instructions}
     }
 
     return Response.json({
-      content: data.choices?.[0]?.message?.content || "پاسخی دریافت نشد."
+      content:
+        data.choices?.[0]?.message?.content ||
+        "پاسخی دریافت نشد."
     });
 
   } catch (error) {
