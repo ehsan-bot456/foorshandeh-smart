@@ -1,5 +1,5 @@
-import { bots } from "../../../../lib/bots";
-import { getTenantId, getTenantConfig } from "../../../../lib/tenant";
+import { bots } from "../../../lib/bots";
+import { getTenantId, getTenantConfig } from "../../../lib/tenant";
 
 export async function POST(request) {
   try {
